@@ -1,0 +1,16 @@
+.idea
+*.log
+*.o
+*.img
+*.jar
+*.doc
+*.doc#
+*.odt
+*.odt#
+kernel
+bootload
+shell
+tstpr1
+tstpr2
+loadFile
+Project_Notes
