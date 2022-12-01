@@ -17,8 +17,18 @@ void terminate();
 void handleInterrupt21(int,int,int,int);
 void handleTimerInterrupt(int, int);
 
+int processActive[8];       //process active pointer table, not more than 8 processes
+int processStackPointer[8]; //process stack pointer table
+int processWaiting[8];
+int currentProcess;         //current process counter
+// process n goes at (n+2)*1000
+
 void main()
 {
+    processActive[i] = 0;
+    processStackPointer[i] = ;
+    currentProcess = -1;
+
     // Setting up for readString
     char line[80];
 
