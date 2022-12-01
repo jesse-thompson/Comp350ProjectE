@@ -15,6 +15,7 @@ void readFile(char*, char*, int*);
 void executeProgram(char* name);
 void terminate();
 void handleInterrupt21(int,int,int,int);
+void handleTimerInterrupt(int, int);
 
 void main()
 {
@@ -29,35 +30,11 @@ void main()
     char* fileName = "messag";
     int sectorsRead;
 
-    // These two functions are for steps 4-6
     makeInterrupt21();
+    makeTimerInterrupt();
 
     handleInterrupt21(4, "shell", 0, 0);
 
-
-
-    // The following code block was for testing functions for steps 1-3
-
-    // Testing readFile as a function
-    //readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
-
-    // Testing readFIle as an interrupt
-//    handleInterrupt21(3, fileName, fileBuffer, &sectorsRead);
-//
-//    if (sectorsRead > 0)
-//    {
-//        printString(fileBuffer);
-//    }
-//    else
-//    {
-//        printString("Error: File not found\n\r");
-//    }
-
-    // Testing executeProgram as an interrupt
-    //handleInterrupt21(4, "tstp", 0, 0);
-
-    // Testing terminate by executing tstpr2
-    //handleInterrupt21(4, "tstpr2", 0, 0);
 
 
 
@@ -116,11 +93,6 @@ void readSector(char* buffer, int sector)
     interrupt(0x13, 2*256+1, buffer, sector+1, 0x80);
 }
 
-// Class notes 11/3/22
-// TO find a file follow these steps:
-// 1. Read the directory using readSector(place to put it, what sector you want to read);
-// 2. Step through directory, one line at a time, and compare the lines to the file name
-
 void readFile(char* fileName, char* buffer, int* sectorsRead)
 {
     //int printIndex; // Index used for printing out the characters of the directory
@@ -149,15 +121,6 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
         if (pad == 1)
             fileName[i] = '\0';
     }
-
-    // printing out the contents of directory, just to see what's currently in there
-//    printString("Printing directory: \n\r");
-//    for (printIndex = 0; printIndex < 512; printIndex++)
-//    {
-//        printChar(directory[printIndex]);
-//    }
-//    printString("\n\r");
-
 
     for (fileEntry = 0; fileEntry < 512; fileEntry += 32)
     {
@@ -295,9 +258,18 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
             break;
         default:
             printString("No interrupt function correlated with AX number");
-
-
     }
-
-
 }
+
+void handleTimerInterrupt(int segment, int sp)
+{
+    printChar('T');
+    printChar('i');
+    printChar('c');
+    printChar('\r');
+    printChar('\n');
+
+    returnFromTimer(segment, sp);
+}
+
+
