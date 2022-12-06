@@ -197,27 +197,50 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
 
 void executeProgram(char* name)
 {
-    int index = 0;
+    int processIndex;
+    int fileIndex;
     int numSectorsRead = 0;
     char buffer[13312];
-
-    printChar('e');
-    printChar('x');
-    printChar('e');
-    printChar('c');
-    printChar('\r');
-    printChar('\n');
+    int dataseg;
+    int newProcessSegment;
 
     readFile(name, buffer, &numSectorsRead);
 
+    // Step 3
+
     if (numSectorsRead > 0)
     {
+        for (processIndex = 0; processIndex < 8; processIndex++)
+        {
+            if (processActive[processIndex] == 0)
+            {
+                // We need to implement the control strcuture mentioned in Step 3.
+                dataseg = setKernelDataSegment();
+                newProcessSegment = processIndex * 0x1000;
+                for (fileIndex = 0; fileIndex < 13312; fileIndex++)
+                {
+                    putInMemory(newProcessSegment, fileIndex, buffer[fileIndex]);
+                }
+                restoreDataSegment(dataseg);
+                initializeProgram(newProcessSegment);
 
-        for (index = 0; index < 13312; index++) {
-            putInMemory(0x2000, index, buffer[index]);
+                // I hope I am doing this right
+                dataseg = setKernelDataSegment();
+                currentProcess = processIndex;
+                restoreDataSegment(dataseg);
+            }
         }
-        launchProgram(0x2000);
     }
+
+    //if (numSectorsRead > 0)
+    //{
+
+    //    for (index = 0; index < 13312; index++) {
+    //        putInMemory(0x2000, index, buffer[index]);
+    //    }
+    //    launchProgram(0x2000);
+    //}
+
     else
     {
         printChar('B');
