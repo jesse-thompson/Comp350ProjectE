@@ -20,15 +20,12 @@ void handleTimerInterrupt(int, int);
 int processActive[8];       //process active pointer table, not more than 8 processes
 int processStackPointer[8]; //process stack pointer table
 int processWaiting[8];
-int currentProcess;         //current process counter
+int currentProcess = -1;         //current process counter
 // process n goes at (n+2)*1000
+int processIndex;
 
 void main()
 {
-    processActive[i] = 0;
-    processStackPointer[i] = ;
-    currentProcess = -1;
-
     // Setting up for readString
     char line[80];
 
@@ -39,6 +36,15 @@ void main()
     char fileBuffer [13312];
     char* fileName = "messag";
     int sectorsRead;
+
+
+    // Initializing process arrays
+    for (processIndex = 0; processIndex < 8; processIndex++)
+    {
+        processActive[processIndex] = 0;
+        processStackPointer[processIndex] = 0xff00;
+    }
+
 
     makeInterrupt21();
     makeTimerInterrupt();
