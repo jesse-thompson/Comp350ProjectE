@@ -17,12 +17,15 @@ void terminate();
 void handleInterrupt21(int,int,int,int);
 void handleTimerInterrupt(int, int);
 
+// Setting up variables for timerInterrupt
+int processActive[8];
+int processStackPointer[8];
+int currentProcess;
+
+
 void main()
 {
-    // Setting up variables for timerInterrupt
-    int processActive[8];
-    int processStackPointer[8];
-    int currentProcess;
+    // Setting up for Step 2
     int processIndex;
 
     // Setting up for readString
@@ -155,18 +158,18 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
             {
                 // Looks messy but this is a better alternative for testing purposes.
                 // This way we can see this print out when testing the shell
-                printChar('F');
-                printChar('i');
-                printChar('l');
-                printChar('e');
-                printChar(' ');
-                printChar('f');
-                printChar('o');
-                printChar('u');
-                printChar('n');
-                printChar('d');
-                printChar('\r');
-                printChar('\n');
+                //printChar('F');
+                //printChar('i');
+                //printChar('l');
+                //printChar('e');
+                //printChar(' ');
+                //printChar('f');
+                //printChar('o');
+                //printChar('u');
+                //printChar('n');
+                //printChar('d');
+                //printChar('\r');
+                //printChar('\n');
 
 
 
@@ -285,6 +288,6 @@ void handleTimerInterrupt(int segment, int sp)
     printChar('\r');
     printChar('\n');
 
-    //returnFromTimer(segment, sp);
+    returnFromTimer(segment, sp);
 
 }

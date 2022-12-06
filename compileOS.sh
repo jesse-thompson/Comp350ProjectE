@@ -18,6 +18,7 @@ bcc -ansi -c -o tstpr2.o tstpr2.c
 as86 -o userlib.o userlib.asm
 ld86 -d -o tstpr2 tstpr2.o userlib.o
 
+
 gcc -o loadFile loadFile.c
 
 ./loadFile kernel
@@ -26,4 +27,6 @@ gcc -o loadFile loadFile.c
 ./loadFile dirtst.txt
 ./loadFile tstpr1
 ./loadFile tstpr2
+
+
 
