@@ -206,6 +206,7 @@ void executeProgram(char* name)
 
     readFile(name, buffer, &numSectorsRead);
 
+
     // Step 3
 
     if (numSectorsRead > 0)
