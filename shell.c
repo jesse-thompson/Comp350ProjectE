@@ -18,6 +18,8 @@ void main()
         char fileName[6];
         int commandIndex;
 
+        enableInterrupts();
+
         // Initializing variables for repeated use of type commands
         sectorsRead = 0;
 

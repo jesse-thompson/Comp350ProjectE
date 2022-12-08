@@ -50,11 +50,10 @@ void main()
 
 
     makeInterrupt21();
-    makeTimerInterrupt();
 
     handleInterrupt21(4, "shell", 0, 0);
 
-
+    makeTimerInterrupt();
 
     while(1);
 }
@@ -303,12 +302,48 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
 
 void handleTimerInterrupt(int segment, int sp)
 {
+    int processIndex;
+    int dataseg;
+    int processFound; // 0 for process not found, 1 for process forund, default is 0
 //    printChar('T');
 //    printChar('i');
 //    printChar('c');
 //    printChar('\r');
 //    printChar('\n');
 
+    // Step 4
+    dataseg = setKernelDataSegment();
+    printChar('O');
+    if (currentProcess != -1)
+    {
+        processStackPointer[currentProcess] = sp;
+    }
+    printChar('P');
+
+    processFound = 0;
+    while(processFound == 0)
+    {
+        // Looping currentProcess back to 0 to start the process over if a process wasn't found yet
+        printChar('Q');
+        if (currentProcess == 7)
+            {
+                currentProcess = 0;            
+            }
+        else
+        {
+            currentProcess++; 
+        }
+
+        // Looking for active processes
+        if (processActive[currentProcess] == 1)
+        {
+            segment = (currentProcess + 2) * 0x1000;
+            sp = processStackPointer[currentProcess];
+            processFound = 1;
+        }    
+    }
+    
+    restoreDataSegment(dataseg);
     returnFromTimer(segment, sp);
 
 }
