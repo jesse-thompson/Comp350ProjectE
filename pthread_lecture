@@ -1,4 +1,4 @@
 pthread_mutex_t betterlock; // global mutually exclusive variable
-                            // essentially an if statement combined with running memory, either both things happen or neither of them happen
+                            // essentially an if statement combined with running memory, either both things happen or neither of them happen 
 
 pthread_mutex_lock(&betterlock); // a function that essentially puts a thread to sleep
