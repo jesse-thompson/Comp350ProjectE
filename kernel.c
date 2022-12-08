@@ -56,7 +56,6 @@ void main()
 
 
 
-
     while(1);
 }
 
@@ -212,41 +211,33 @@ void executeProgram(char* name)
     if (numSectorsRead > 0) // If numSectorsRead > 0, then the file was found
     {
 
-        for (processIndex = 0; processIndex < 8; processIndex++) // Iterating through processIndex to find an available index
+        for (processIndex = 0; processIndex < 8; processIndex++) // Iterating through activeProcess to find an available index
         {
 
             if (processActive[processIndex] == 0) // Finds the first available index
             {
-                // We need to implement the control strcuture mentioned in Step 3.
+                // This control structure is necessary to make sure the global variables are accurate
                 dataseg = setKernelDataSegment();
-                newProcessSegment = processIndex * 0x1000;
+                newProcessSegment = (processIndex + 2) * 0x1000;
                 restoreDataSegment(dataseg);
 
-                // Currently causing a processor panic
                 for (fileIndex = 0; fileIndex < 13312; fileIndex++)
                 {
                     putInMemory(newProcessSegment, fileIndex, buffer[fileIndex]);
                 }
 
-
                 initializeProgram(newProcessSegment);
 
-                // I hope I am doing this right
                 dataseg = setKernelDataSegment();
-                currentProcess = processIndex;
+                processActive[processIndex] = 1;
+                restoreDataSegment(dataseg);
+
+                dataseg = setKernelDataSegment();
+                processStackPointer[processIndex] = 0xff00;
                 restoreDataSegment(dataseg);
             }
         }
     }
-
-    //if (numSectorsRead > 0)
-    //{
-
-    //    for (index = 0; index < 13312; index++) {
-    //        putInMemory(0x2000, index, buffer[index]);
-    //    }
-    //    launchProgram(0x2000);
-    //}
 
     else
     {
@@ -312,11 +303,11 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
 
 void handleTimerInterrupt(int segment, int sp)
 {
-    printChar('T');
-    printChar('i');
-    printChar('c');
-    printChar('\r');
-    printChar('\n');
+//    printChar('T');
+//    printChar('i');
+//    printChar('c');
+//    printChar('\r');
+//    printChar('\n');
 
     returnFromTimer(segment, sp);
 
