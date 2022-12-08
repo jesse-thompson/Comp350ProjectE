@@ -209,20 +209,26 @@ void executeProgram(char* name)
 
     // Step 3
 
-    if (numSectorsRead > 0)
+    if (numSectorsRead > 0) // If numSectorsRead > 0, then the file was found
     {
-        for (processIndex = 0; processIndex < 8; processIndex++)
+
+        for (processIndex = 0; processIndex < 8; processIndex++) // Iterating through processIndex to find an available index
         {
-            if (processActive[processIndex] == 0)
+
+            if (processActive[processIndex] == 0) // Finds the first available index
             {
                 // We need to implement the control strcuture mentioned in Step 3.
                 dataseg = setKernelDataSegment();
                 newProcessSegment = processIndex * 0x1000;
+                restoreDataSegment(dataseg);
+
+                // Currently causing a processor panic
                 for (fileIndex = 0; fileIndex < 13312; fileIndex++)
                 {
                     putInMemory(newProcessSegment, fileIndex, buffer[fileIndex]);
                 }
-                restoreDataSegment(dataseg);
+
+
                 initializeProgram(newProcessSegment);
 
                 // I hope I am doing this right
