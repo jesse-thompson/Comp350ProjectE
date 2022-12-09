@@ -261,6 +261,16 @@ void executeProgram(char* name)
 
 void terminate()
 {
+    int dataseg;
+
+    dataseg = setKernelDataSegment();
+    processActive[currentProcess] = 0;
+    restoreDataSegment();
+
+    while(1);
+
+
+/* Project C Shell
     char shellName[6];
 
     shellName[0] = 's';
@@ -271,6 +281,7 @@ void terminate()
     shellName[5] = '\0';
 
     executeProgram(shellName);
+*/
 }
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
@@ -313,18 +324,17 @@ void handleTimerInterrupt(int segment, int sp)
 
     // Step 4
     dataseg = setKernelDataSegment();
-    printChar('O');
     if (currentProcess != -1)
     {
         processStackPointer[currentProcess] = sp;
     }
-    printChar('P');
 
     processFound = 0;
     while(processFound == 0)
+    // Running this as of right now runs shell 8 times, then does nothing else
+    // On the up side, it doesn't crash or panic
     {
         // Looping currentProcess back to 0 to start the process over if a process wasn't found yet
-        printChar('Q');
         if (currentProcess == 7)
             {
                 currentProcess = 0;            
