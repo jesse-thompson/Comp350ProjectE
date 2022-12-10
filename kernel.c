@@ -15,9 +15,19 @@ void readFile(char*, char*, int*);
 void executeProgram(char* name);
 void terminate();
 void handleInterrupt21(int,int,int,int);
+void handleTimerInterrupt(int, int);
+
+// Setting up variables for timerInterrupt
+int processActive[8];
+int processStackPointer[8];
+int currentProcess;
+
 
 void main()
 {
+    // Setting up for Step 2
+    int processIndex;
+
     // Setting up for readString
     char line[80];
 
@@ -29,37 +39,21 @@ void main()
     char* fileName = "messag";
     int sectorsRead;
 
-    // These two functions are for steps 4-6
+    
+    // Initializing process arrays
+    for (processIndex = 0; processIndex < 8; processIndex++)
+    {
+        processActive[processIndex] = 0;
+        processStackPointer[processIndex] = 0xff00;
+    }
+    currentProcess = -1;
+
+
     makeInterrupt21();
 
     handleInterrupt21(4, "shell", 0, 0);
 
-
-
-    // The following code block was for testing functions for steps 1-3
-
-    // Testing readFile as a function
-    //readFile(fileName, fileBuffer, &sectorsRead); // Just a test of the function
-
-    // Testing readFIle as an interrupt
-//    handleInterrupt21(3, fileName, fileBuffer, &sectorsRead);
-//
-//    if (sectorsRead > 0)
-//    {
-//        printString(fileBuffer);
-//    }
-//    else
-//    {
-//        printString("Error: File not found\n\r");
-//    }
-
-    // Testing executeProgram as an interrupt
-    //handleInterrupt21(4, "tstp", 0, 0);
-
-    // Testing terminate by executing tstpr2
-    //handleInterrupt21(4, "tstpr2", 0, 0);
-
-
+    makeTimerInterrupt();
 
     while(1);
 }
@@ -116,11 +110,6 @@ void readSector(char* buffer, int sector)
     interrupt(0x13, 2*256+1, buffer, sector+1, 0x80);
 }
 
-// Class notes 11/3/22
-// TO find a file follow these steps:
-// 1. Read the directory using readSector(place to put it, what sector you want to read);
-// 2. Step through directory, one line at a time, and compare the lines to the file name
-
 void readFile(char* fileName, char* buffer, int* sectorsRead)
 {
     //int printIndex; // Index used for printing out the characters of the directory
@@ -150,15 +139,6 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
             fileName[i] = '\0';
     }
 
-    // printing out the contents of directory, just to see what's currently in there
-//    printString("Printing directory: \n\r");
-//    for (printIndex = 0; printIndex < 512; printIndex++)
-//    {
-//        printChar(directory[printIndex]);
-//    }
-//    printString("\n\r");
-
-
     for (fileEntry = 0; fileEntry < 512; fileEntry += 32)
     {
         correctChars = 0;
@@ -176,18 +156,18 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
             {
                 // Looks messy but this is a better alternative for testing purposes.
                 // This way we can see this print out when testing the shell
-                printChar('F');
-                printChar('i');
-                printChar('l');
-                printChar('e');
-                printChar(' ');
-                printChar('f');
-                printChar('o');
-                printChar('u');
-                printChar('n');
-                printChar('d');
-                printChar('\r');
-                printChar('\n');
+                //printChar('F');
+                //printChar('i');
+                //printChar('l');
+                //printChar('e');
+                //printChar(' ');
+                //printChar('f');
+                //printChar('o');
+                //printChar('u');
+                //printChar('n');
+                //printChar('d');
+                //printChar('\r');
+                //printChar('\n');
 
 
 
@@ -215,27 +195,49 @@ void readFile(char* fileName, char* buffer, int* sectorsRead)
 
 void executeProgram(char* name)
 {
-    int index = 0;
+    int processIndex;
+    int fileIndex;
     int numSectorsRead = 0;
     char buffer[13312];
-
-    printChar('e');
-    printChar('x');
-    printChar('e');
-    printChar('c');
-    printChar('\r');
-    printChar('\n');
+    int dataseg;
+    int newProcessSegment;
 
     readFile(name, buffer, &numSectorsRead);
 
-    if (numSectorsRead > 0)
+
+    // Step 3
+
+    if (numSectorsRead > 0) // If numSectorsRead > 0, then the file was found
     {
 
-        for (index = 0; index < 13312; index++) {
-            putInMemory(0x2000, index, buffer[index]);
+        for (processIndex = 0; processIndex < 8; processIndex++) // Iterating through activeProcess to find an available index
+        {
+	    dataseg = setKernelDataSegment();
+            if (processActive[processIndex] == 0) // Finds the first available index
+            {
+                // This control structure is necessary to make sure the global variables are accurate
+
+                newProcessSegment = (processIndex + 2) * 0x1000;
+
+                for (fileIndex = 0; fileIndex < 13312; fileIndex++)
+                {
+                    putInMemory(newProcessSegment, fileIndex, buffer[fileIndex]);
+                }
+
+                initializeProgram(newProcessSegment);
+
+                dataseg = setKernelDataSegment();
+                processActive[processIndex] = 1;
+                restoreDataSegment(dataseg);
+
+                dataseg = setKernelDataSegment();
+                processStackPointer[processIndex] = 0xff00;
+                restoreDataSegment(dataseg);
+            }
+	    restoreDataSegment(dataseg);
         }
-        launchProgram(0x2000);
     }
+
     else
     {
         printChar('B');
@@ -259,6 +261,16 @@ void executeProgram(char* name)
 
 void terminate()
 {
+    int dataseg;
+
+    dataseg = setKernelDataSegment();
+    processActive[currentProcess] = 0;
+    restoreDataSegment();
+
+    while(1);
+
+
+/* Project C Shell
     char shellName[6];
 
     shellName[0] = 's';
@@ -269,6 +281,7 @@ void terminate()
     shellName[5] = '\0';
 
     executeProgram(shellName);
+*/
 }
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
@@ -295,9 +308,52 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
             break;
         default:
             printString("No interrupt function correlated with AX number");
+    }
+}
 
+void handleTimerInterrupt(int segment, int sp)
+{
+    int processIndex;
+    int dataseg;
+    int processFound; // 0 for process not found, 1 for process forund, default is 0
+//    printChar('T');
+//    printChar('i');
+//    printChar('c');
+//    printChar('\r');
+//    printChar('\n');
 
+    // Step 4
+    dataseg = setKernelDataSegment();
+    if (currentProcess != -1)
+    {
+        processStackPointer[currentProcess] = sp;
     }
 
+    processFound = 0;
+    while(processFound == 0)
+    // Running this as of right now runs shell 8 times, then does nothing else
+    // On the up side, it doesn't crash or panic
+    {
+        // Looping currentProcess back to 0 to start the process over if a process wasn't found yet
+        if (currentProcess == 7)
+            {
+                currentProcess = 0;            
+            }
+        else
+        {
+            currentProcess++; 
+        }
+
+        // Looking for active processes
+        if (processActive[currentProcess] == 1)
+        {
+            segment = (currentProcess + 2) * 0x1000;
+            sp = processStackPointer[currentProcess];
+            processFound = 1;
+        }    
+    }
+    
+    restoreDataSegment(dataseg);
+    returnFromTimer(segment, sp);
 
 }
