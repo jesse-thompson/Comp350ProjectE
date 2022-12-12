@@ -282,7 +282,7 @@ void handleTimerInterrupt(int segment, int sp)
 {
     int processIndex;
     int dataseg;
-    int processFound; // 0 for process not found, 1 for process forund, default is 0
+    int processFound; // 0 for process not found, 1 for process found, default is 0
 //    printChar('T');
 //    printChar('i');
 //    printChar('c');
@@ -295,6 +295,17 @@ void handleTimerInterrupt(int segment, int sp)
     {
         processStackPointer[currentProcess] = sp;
         restoreDataSegment(dataseg);
+    } else
+    {
+        printChar('f');
+        printChar('a');
+        printChar('i');
+        printChar('l');
+        printChar('\r');
+        printChar('\n');
+
+        terminate();
+
     }
 
     processFound = 0;
