@@ -1,3 +1,5 @@
+enableInterrupts();
+
 main()
 {
     enableInterrupts();

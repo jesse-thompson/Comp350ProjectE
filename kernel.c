@@ -16,7 +16,9 @@ void executeProgram(char* name);
 void terminate();
 void handleInterrupt21(int,int,int,int);
 void handleTimerInterrupt(int, int);
-
+void initializeProgram(int segment);
+void restoreDataSegment(int segment);
+int setKernelDataSegment();
 // Setting up variables for timerInterrupt
 int processActive[8];
 int processStackPointer[8];
@@ -51,7 +53,8 @@ void main()
 
     makeInterrupt21();
 
-    handleInterrupt21(4, "shell", 0, 0);
+    executeProgram("shell");
+//    handleInterrupt21(4, "shell", 0, 0);
 
     makeTimerInterrupt();
 
@@ -208,13 +211,9 @@ void executeProgram(char* name)
 
                 initializeProgram(newProcessSegment);
 
-                dataseg = setKernelDataSegment();
                 processActive[processIndex] = 1;
-                restoreDataSegment(dataseg);
 
-                dataseg = setKernelDataSegment();
                 processStackPointer[processIndex] = 0xff00;
-                restoreDataSegment(dataseg);
             }
 	    restoreDataSegment(dataseg);
         }
@@ -247,23 +246,9 @@ void terminate()
 
     dataseg = setKernelDataSegment();
     processActive[currentProcess] = 0;
-    restoreDataSegment();
+    restoreDataSegment(dataseg);
 
     while(1);
-
-
-/* Project C Shell
-    char shellName[6];
-
-    shellName[0] = 's';
-    shellName[1] = 'h';
-    shellName[2] = 'e';
-    shellName[3] = 'l';
-    shellName[4] = 'l';
-    shellName[5] = '\0';
-
-    executeProgram(shellName);
-*/
 }
 
 void handleInterrupt21(int ax, int bx, int cx, int dx)
@@ -309,6 +294,7 @@ void handleTimerInterrupt(int segment, int sp)
     if (currentProcess != -1)
     {
         processStackPointer[currentProcess] = sp;
+        restoreDataSegment(dataseg);
     }
 
     processFound = 0;
@@ -317,25 +303,28 @@ void handleTimerInterrupt(int segment, int sp)
     // On the up side, it doesn't crash or panic
     {
         // Looping currentProcess back to 0 to start the process over if a process wasn't found yet
+        dataseg = setKernelDataSegment();
         if (currentProcess == 7)
-            {
-                currentProcess = 0;
-            }
+        {
+            currentProcess = 0;
+            restoreDataSegment(dataseg);
+        }
         else
         {
             currentProcess++;
+            restoreDataSegment(dataseg);
         }
 
         // Looking for active processes
+        dataseg = setKernelDataSegment();
         if (processActive[currentProcess] == 1)
         {
             segment = (currentProcess + 2) * 0x1000;
             sp = processStackPointer[currentProcess];
+            restoreDataSegment(dataseg);
             processFound = 1;
         }
     }
 
-    restoreDataSegment(dataseg);
     returnFromTimer(segment, sp);
-
 }
