@@ -295,18 +295,9 @@ void handleTimerInterrupt(int segment, int sp)
     {
         processStackPointer[currentProcess] = sp;
         restoreDataSegment(dataseg);
-    } else
-    {
-        printChar('f');
-        printChar('a');
-        printChar('i');
-        printChar('l');
-        printChar('\r');
-        printChar('\n');
-
-        terminate();
-
     }
+    //TODO: figure out why it's not changing processes
+    //maybe due to currentProcess data set? idk
 
     processFound = 0;
     while(processFound == 0)
