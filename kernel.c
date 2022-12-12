@@ -51,7 +51,7 @@ void main()
 
     makeInterrupt21();
 
-    handleInterrupt21(4, "shell", 0, 0);
+    executeProgram("shell");
 
     makeTimerInterrupt();
 
@@ -213,7 +213,7 @@ void executeProgram(char* name)
         for (processIndex = 0; processIndex < 8; processIndex++) // Iterating through activeProcess to find an available index
         {
 
-            if (processActive[processIndex] == 0) // Finds the first available index
+            if (processActive[processIndex] == 0 ) // Finds the first available index
             {
                 // This control structure is necessary to make sure the global variables are accurate
                 dataseg = setKernelDataSegment();
@@ -234,6 +234,8 @@ void executeProgram(char* name)
                 dataseg = setKernelDataSegment();
                 processStackPointer[processIndex] = 0xff00;
                 restoreDataSegment(dataseg);
+
+                break;
             }
         }
     }
