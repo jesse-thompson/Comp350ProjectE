@@ -1,9 +1,11 @@
 main()
 {
-	int i,j,k=1,l;
-	char* msg="Number is 0\r\n";
 
-	enableInterrupts();
+	int i,j,k=1,l;
+
+	char* msg="Number is 0\r\n";
+    enableInterrupts();
+	
 	for(i=0; i<100; i++)
 	{
 		msg[10]++;

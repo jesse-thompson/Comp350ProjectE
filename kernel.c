@@ -234,7 +234,7 @@ void executeProgram(char* name)
                 dataseg = setKernelDataSegment();
                 processStackPointer[processIndex] = 0xff00;
                 restoreDataSegment(dataseg);
-
+                
                 break;
             }
         }
@@ -315,47 +315,65 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
 
 void handleTimerInterrupt(int segment, int sp)
 {
+// I've found the problem, see the while loop below
+    int i;
+    int processFound;
     int processIndex;
     int dataseg;
-    int processFound; // 0 for process not found, 1 for process forund, default is 0
+
 //    printChar('T');
-//    printChar('i');
-//    printChar('c');
-//    printChar('\r');
-//    printChar('\n');
+  //  printChar('i');
+    //printChar('c');
+    //printChar('\r');
+    //printChar('\n');
 
-    // Step 4
+    // Step 4   
     dataseg = setKernelDataSegment();
-    if (currentProcess != -1)
-    {
-        processStackPointer[currentProcess] = sp;
-    }
 
-    processFound = 0;
-    while(processFound == 0)
-    // Running this as of right now runs shell 8 times, then does nothing else
-    // On the up side, it doesn't crash or panic
-    {
-        // Looping currentProcess back to 0 to start the process over if a process wasn't found yet
-        if (currentProcess == 7)
-            {
-                currentProcess = 0;            
-            }
-        else
+    for(i=0; i<8; i++)
         {
-            currentProcess++; 
+                putInMemory(0xb800,60*2+i*4,i+0x30);
+                if(processActive[i]==1)
+                        putInMemory(0xb800,60*2+i*4+1,0x20);
+                else
+                        putInMemory(0xb800,60*2+i*4+1,0);
         }
 
-        // Looking for active processes
+
+    if (currentProcess != -1)
+    {
+
+        processStackPointer[currentProcess] = sp;
+
+    }
+
+    
+    while(processFound == 0)
+    {
+        // As far as I can tell, this strategy works for the first time handleTimerInterrupt is called. It can load shell into the processActive table but then gets stuck in this while loop. 
+        // There is an issue in executeProgram where it is not updating the processActive table correctly, thus the while loop never has a chance to break
+            
+        printChar('A');
+        
+        // Incrementing currentProcess
+        if (currentProcess == 7)
+        {
+        currentProcess = 0;
+        }
+        else
+        {
+        currentProcess++;
+        }
+
         if (processActive[currentProcess] == 1)
         {
-            segment = (currentProcess + 2) * 0x1000;
+            segment = ((currentProcess + 2) * 0x1000);
             sp = processStackPointer[currentProcess];
-            processFound = 1;
-        }    
+            break;
+        }
+
     }
-    
+
     restoreDataSegment(dataseg);
     returnFromTimer(segment, sp);
-
 }
