@@ -19,4 +19,3 @@ main()
 	syscall(5);
 	while(1);
 }
-

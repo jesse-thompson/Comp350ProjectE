@@ -4,8 +4,6 @@
 // Sean Tammelleo
 
 
-void takeCommand(char* command);
-
 void main()
 {
     while (1)
@@ -17,6 +15,8 @@ void main()
 
         char fileName[6];
         int commandIndex;
+
+        enableInterrupts();
 
         // Initializing variables for repeated use of type commands
         sectorsRead = 0;
