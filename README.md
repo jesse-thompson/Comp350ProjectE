@@ -2,9 +2,10 @@
 
 Written by: 
 Craig Kimball, Jesse Thompson, Sean Tammelleo, Tj Bourget <br>
-12/9/22 <br>
+12/13/22 <br>
 
 ## Steps Completed  ##
+Steps 1 - 5<br>
 
 In order for commands to work properly, the file path in settings.txt must be modified to where the project is on the host computer.<br>
 
