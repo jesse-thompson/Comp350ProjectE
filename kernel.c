@@ -218,7 +218,7 @@ void executeProgram(char* name)
                 // This control structure is necessary to make sure the global variables are accurate
                 dataseg = setKernelDataSegment();
                 newProcessSegment = (processIndex + 2) * 0x1000;
-                restoreDataSegment(dataseg);
+
 
                 for (fileIndex = 0; fileIndex < 13312; fileIndex++)
                 {
@@ -227,11 +227,10 @@ void executeProgram(char* name)
 
                 initializeProgram(newProcessSegment);
 
-                dataseg = setKernelDataSegment();
-                processActive[processIndex] = 1;
-                restoreDataSegment(dataseg);
 
-                dataseg = setKernelDataSegment();
+                processActive[processIndex] = 1;
+
+
                 processStackPointer[processIndex] = 0xff00;
                 restoreDataSegment(dataseg);
                 
@@ -317,15 +316,16 @@ void handleTimerInterrupt(int segment, int sp)
 {
 // I've found the problem, see the while loop below
     int i;
-    int processFound;
     int processIndex;
     int dataseg;
+    int newSegment;
+    int newSp;
 
-//    printChar('T');
-  //  printChar('i');
-    //printChar('c');
-    //printChar('\r');
-    //printChar('\n');
+    printChar('T');
+    printChar('i');
+    printChar('c');
+    printChar('\r');
+    printChar('\n');
 
     // Step 4   
     dataseg = setKernelDataSegment();
@@ -348,12 +348,12 @@ void handleTimerInterrupt(int segment, int sp)
     }
 
     
-    while(processFound == 0)
+    while(1)
     {
         // As far as I can tell, this strategy works for the first time handleTimerInterrupt is called. It can load shell into the processActive table but then gets stuck in this while loop. 
         // There is an issue in executeProgram where it is not updating the processActive table correctly, thus the while loop never has a chance to break
             
-        printChar('A');
+//        printChar('A');
         
         // Incrementing currentProcess
         if (currentProcess == 7)
@@ -367,13 +367,15 @@ void handleTimerInterrupt(int segment, int sp)
 
         if (processActive[currentProcess] == 1)
         {
-            segment = ((currentProcess + 2) * 0x1000);
-            sp = processStackPointer[currentProcess];
+
+            newSegment = ((currentProcess + 2) * 0x1000);
+            newSp = processStackPointer[currentProcess];
             break;
         }
+
 
     }
 
     restoreDataSegment(dataseg);
-    returnFromTimer(segment, sp);
+    returnFromTimer(newSegment, newSp);
 }
