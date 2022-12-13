@@ -54,7 +54,6 @@ void main()
     makeInterrupt21();
 
     executeProgram("shell");
-//    handleInterrupt21(4, "shell", 0, 0);
 
     makeTimerInterrupt();
 
@@ -214,8 +213,10 @@ void executeProgram(char* name)
                 processActive[processIndex] = 1;
 
                 processStackPointer[processIndex] = 0xff00;
+                restoreDataSegment(dataseg);
+
+                break;
             }
-	    restoreDataSegment(dataseg);
         }
     }
 
@@ -280,9 +281,12 @@ void handleInterrupt21(int ax, int bx, int cx, int dx)
 
 void handleTimerInterrupt(int segment, int sp)
 {
+    int i;
     int processIndex;
     int dataseg;
-    int processFound; // 0 for process not found, 1 for process found, default is 0
+    int newSegment;
+    int newSp;
+
 //    printChar('T');
 //    printChar('i');
 //    printChar('c');
@@ -291,6 +295,17 @@ void handleTimerInterrupt(int segment, int sp)
 
     // Step 4
     dataseg = setKernelDataSegment();
+
+    for(i=0; i<8; i++)
+        {
+                putInMemory(0xb800,60*2+i*4,i+0x30);
+                if(processActive[i]==1)
+                        putInMemory(0xb800,60*2+i*4+1,0x20);
+                else
+                        putInMemory(0xb800,60*2+i*4+1,0);
+        }
+
+
     if (currentProcess != -1)
     {
         processStackPointer[currentProcess] = sp;
@@ -299,10 +314,8 @@ void handleTimerInterrupt(int segment, int sp)
     //TODO: figure out why it's not changing processes
     //maybe due to currentProcess data set? idk
 
-    processFound = 0;
-    while(processFound == 0)
-    // Running this as of right now runs shell 8 times, then does nothing else
-    // On the up side, it doesn't crash or panic
+
+    while(1)
     {
         // Looping currentProcess back to 0 to start the process over if a process wasn't found yet
         dataseg = setKernelDataSegment();
@@ -321,12 +334,11 @@ void handleTimerInterrupt(int segment, int sp)
         dataseg = setKernelDataSegment();
         if (processActive[currentProcess] == 1)
         {
-            segment = (currentProcess + 2) * 0x1000;
-            sp = processStackPointer[currentProcess];
-            restoreDataSegment(dataseg);
-            processFound = 1;
+            newSegment = ((currentProcess + 2) * 0x1000);
+            newSp = processStackPointer[currentProcess];
+            break;
         }
     }
-
-    returnFromTimer(segment, sp);
+    restoreDataSegment(dataseg);
+    returnFromTimer(newSegment, newSp);
 }
